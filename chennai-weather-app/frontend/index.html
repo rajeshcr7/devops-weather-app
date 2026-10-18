@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chennai Weather</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 520px;
+      margin: 80px auto;
+      padding: 0 20px;
+      color: #222;
+    }
+    button {
+      padding: 10px 16px;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    button:disabled { cursor: wait; opacity: .6; }
+    #result { margin-top: 18px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+  <h2>Chennai Weather</h2>
+  <button id="weather-button" type="button">Get Chennai Weather</button>
+  <div id="result" aria-live="polite"></div>
+
+  <script>
+    const button = document.getElementById("weather-button");
+    const result = document.getElementById("result");
+
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      result.textContent = "Loading weather...";
+      try {
+        const response = await fetch("/api/weather");
+        if (!response.ok) throw new Error("Weather request failed");
+        const weather = await response.json();
+        result.innerHTML = `
+          <div><strong>Temperature:</strong> ${weather.temperature_c} °C</div>
+          <div><strong>Humidity:</strong> ${weather.humidity_percent}%</div>
+          <div><strong>Wind speed:</strong> ${weather.wind_speed_kmh} km/h</div>
+          <div><small>Updated: ${weather.time}</small></div>
+        `;
+      } catch (error) {
+        result.textContent = "Unable to get weather. Please try again.";
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
