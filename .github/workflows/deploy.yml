@@ -7,7 +7,7 @@ on:
       - main
     paths:
       - "chennai-weather-app/**"
-      - ".github/workflows/deploy.yml"  
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 permissions:
@@ -73,7 +73,6 @@ jobs:
           chmod 600 ~/.ssh/ec2_key
 
           ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
-          
 
       - name: Copy Compose file to EC2
         env:
@@ -87,29 +86,16 @@ jobs:
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          set -euxo pipefail
-
           ssh -i ~/.ssh/ec2_key \
             ec2-user@"$EC2_HOST" 'bash -s' <<'REMOTE'
-          set -euxo pipefail
+            set -e
 
-          cd /home/ec2-user
+            cd /home/ec2-user
 
-          echo "=== Docker version ==="
-          sudo docker --version
+            sudo docker compose -f docker-compose.yml pull
 
-          echo "=== Docker Compose version ==="
-          sudo docker compose version
+            sudo docker compose -f docker-compose.yml up \
+              -d --remove-orphans
 
-          echo "=== Validate Compose configuration ==="
-          sudo docker compose -f docker-compose.yml config -q
-
-          echo "=== Pull images ==="
-          sudo docker compose -f docker-compose.yml pull
-
-          echo "=== Start containers ==="
-          sudo docker compose -f docker-compose.yml up -d --remove-orphans
-
-          echo "=== Container status ==="
-          sudo docker compose -f docker-compose.yml ps
+            sudo docker compose -f docker-compose.yml ps
           REMOTE
